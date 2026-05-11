@@ -1,6 +1,6 @@
 # Keropin
 
-**Claude의 답변 위에 직접 메모를 다는 후속 질문 도구**
+**흐름을 잃지 않고 탐색을 이어나갈 수 있도록 합니다.**
 
 > 웹 버전: [keropin.vercel.app](https://keropin.vercel.app/)
 
@@ -24,13 +24,6 @@
 ### Install
 
 ```bash
-claude skill add /path/to/keropin-skill
+git clone https://github.com/hotbari/keropin-skill.git
+claude skill add ./keropin-skill
 ```
-
-### Permissions
-
-이 skill을 설치한 뒤, 다음 권한을 허용해야 합니다:
-
-- `Bash(python3:*)` — 서버 실행
-- `Bash(open:*)` — 브라우저 열기
-- `Bash(pkill -f "python3 server.py")` — 서버 종료
