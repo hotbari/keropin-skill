@@ -19,11 +19,19 @@
 3. 브라우저에서 답변을 읽으며 궁금한 부분에 메모를 답니다
 4. "Done" 클릭 → Claude가 각 메모에 정확히 답변합니다
 
-## Setup
+## Install
 
-### Install
+모든 프로젝트에서 사용 (personal skill):
+
+```bash
+git clone https://github.com/hotbari/keropin-skill.git ~/.claude/skills/keropin
+```
+
+특정 프로젝트에서만 사용 (project skill):
 
 ```bash
 git clone https://github.com/hotbari/keropin-skill.git
-claude skill add ./keropin-skill
+cp -r keropin-skill/.  your-project/.claude/skills/keropin/
 ```
+
+설치 후 Claude Code 세션을 재시작하면 `/keropin` 커맨드를 사용할 수 있습니다.
