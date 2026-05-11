@@ -48,7 +48,7 @@ Just answer the question normally in markdown. Done.
 
 **If the answer is COMPLEX** (many follow-up questions expected):
 Do NOT write the answer yet. Instead, tell the user:
-"이 질문은 답변이 길어질 것 같아요. Keropin을 열어서 답변을 읽으면서 궁금한 부분에 바로 메모를 달아볼까요? 아니면 그냥 터미널에 답변할까요?"
+"이 질문은 답변이 길어질 것 같아요. Keropin을 열어서 답변을 읽으면서 궁금한 부분에 바로 메모를 달아볼까요?"
 Then STOP and wait for the user's response.
 
 ### Step 3: Based on user's response
@@ -58,15 +58,18 @@ Answer the question normally in markdown. Done.
 
 **If the user agrees to open Keropin:**
 
+#### Starting a Session
+
 1. Compose your full answer internally but do NOT output it to the terminal. Instead, write it directly to `/tmp/keropin_response.md`.
 
 2. Remove the export file: `rm -f /tmp/keropin_export.txt`
 
 3. Start the keropin server in the background:
    ```
-   python3 <SKILL_DIR>/server.py
+   python3 /Users/yeonsu/2026/keropin-skill/server.py > /tmp/keropin_server.log 2>&1 &
+   sleep 1
+   cat /tmp/keropin_server.log
    ```
-   where `<SKILL_DIR>` is the directory where this SKILL.md is located.
    The server prints a URL like `http://localhost:XXXXX`. Capture this URL.
 
 4. Open the browser: `open <URL>`
@@ -80,6 +83,15 @@ Answer the question normally in markdown. Done.
 
 7. Once the file exists, read `/tmp/keropin_export.txt`.
 
-8. Stop the server: `pkill -f "python3 server.py"`
+8. Answer each question in the export, using the Section and Paragraph context to understand exactly which part of the response the user is asking about. If the same word appears multiple times, use the paragraph context to disambiguate.
 
-9. Answer each question in the export, using the Section and Paragraph context to understand exactly which part of the response the user is asking about. If the same word appears multiple times, use the paragraph context to disambiguate.
+#### After Answering Follow-up Questions
+
+After answering all inline questions, ask the user:
+
+"추가로 궁금한 부분이 있나요?
+1. **Keropin으로 계속** — 지금 답변을 Keropin UI에 다시 띄워서 메모를 달 수 있어요.
+2. **여기서 계속** — 서버를 종료하고 터미널에서 대화를 이어가요."
+
+- **Option 1**: Write the follow-up answers to `/tmp/keropin_response.md`, remove the export file (`rm -f /tmp/keropin_export.txt`), and repeat from step 5 (tell user to add memos → poll → read → answer). Do NOT restart the server if it's already running.
+- **Option 2**: Stop the server (`pkill -f "python3 server.py"`) and continue the conversation normally in the terminal.
