@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>keropin</title>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #FAFAF5;
+    color: #2d2d2d;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    padding: 12px 24px;
+    background: #fff;
+    border-bottom: 1px solid #e0e0d8;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+  header h1 { font-size: 18px; font-weight: 600; color: #2d2d2d; }
+
+  .header-actions {
+    margin-left: auto;
+    display: flex;
+    gap: 8px;
+  }
+
+  button {
+    padding: 6px 14px;
+    border: 1px solid #d0d0c8;
+    border-radius: 6px;
+    background: #fff;
+    color: #2d2d2d;
+    cursor: pointer;
+    font-size: 13px;
+    transition: background 0.15s;
+  }
+
+  button:hover { background: #f0f0ea; }
+  button.primary { background: #4CAF50; border-color: #4CAF50; color: #fff; }
+  button.primary:hover { background: #43A047; }
+  button.success { background: #2E7D32; border-color: #2E7D32; color: #fff; }
+  button.success:hover { background: #1B5E20; }
+
+  .main-container {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+  }
+
+  /* Input view */
+  .input-view {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .input-view textarea {
+    width: 100%;
+    max-width: 700px;
+    height: 60vh;
+    padding: 16px;
+    background: #fff;
+    border: 1px solid #d0d0c8;
+    border-radius: 8px;
+    color: #2d2d2d;
+    font-family: monospace;
+    font-size: 14px;
+    resize: vertical;
+    outline: none;
+  }
+
+  .input-view textarea:focus { border-color: #4CAF50; }
+  .input-view .actions { margin-top: 12px; }
+
+  /* Reader view */
+  .reader-view {
+    flex: 1;
+    display: none;
+    overflow: hidden;
+  }
+
+  .content-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 40px;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .content-area h1, .content-area h2, .content-area h3 {
+    margin-top: 24px;
+    margin-bottom: 12px;
+    color: #1a1a1a;
+  }
+
+  .content-area p { margin-bottom: 12px; line-height: 1.7; }
+  .content-area ul, .content-area ol { margin-bottom: 12px; padding-left: 24px; }
+  .content-area li { margin-bottom: 6px; line-height: 1.6; }
+  .content-area code {
+    background: #f0f0ea;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 13px;
+  }
+  .content-area pre {
+    background: #f5f5f0;
+    padding: 16px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin-bottom: 12px;
+    border: 1px solid #e0e0d8;
+  }
+  .content-area pre code { background: none; padding: 0; }
+  .content-area blockquote {
+    border-left: 3px solid #c8e6c9;
+    padding-left: 16px;
+    color: #666;
+    margin-bottom: 12px;
+  }
+  .content-area a { color: #2E7D32; }
+
+  /* Table styles */
+  .content-area table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 12px;
+  }
+  .content-area th, .content-area td {
+    border: 1px solid #d0d0c8;
+    padding: 8px 12px;
+    text-align: left;
+  }
+  .content-area th { background: #E8F5E9; color: #1a1a1a; }
+
+  /* Memo highlights */
+  .memo-highlight {
+    background: rgba(200, 230, 120, 0.3);
+    border-bottom: 2px solid rgba(139, 195, 74, 0.7);
+    cursor: pointer;
+    position: relative;
+    transition: background 0.15s;
+  }
+
+  .memo-highlight:hover { background: rgba(200, 230, 120, 0.5); }
+
+  .memo-highlight .memo-indicator {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background: #4CAF50;
+    border-radius: 50%;
+    margin-left: 4px;
+    vertical-align: middle;
+  }
+
+  /* Memo popup */
+  .memo-popup {
+    position: fixed;
+    background: #fff;
+    border: 1px solid #d0d0c8;
+    border-radius: 8px;
+    padding: 12px;
+    width: 320px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    z-index: 100;
+    display: none;
+  }
+
+  .memo-popup textarea {
+    width: 100%;
+    height: 80px;
+    background: #FAFAF5;
+    border: 1px solid #d0d0c8;
+    border-radius: 6px;
+    color: #2d2d2d;
+    padding: 8px;
+    font-size: 13px;
+    resize: none;
+    outline: none;
+    font-family: inherit;
+  }
+
+  .memo-popup textarea:focus { border-color: #4CAF50; }
+
+  .memo-popup .popup-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  .memo-popup .selected-text-preview {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 8px;
+    padding: 6px 8px;
+    background: #f5f5f0;
+    border-radius: 4px;
+    max-height: 60px;
+    overflow: hidden;
+    border-left: 3px solid #8BC34A;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    width: 340px;
+    background: #f5f7f0;
+    border-left: 1px solid #e0e0d8;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+  }
+
+  .sidebar-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid #e0e0d8;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .sidebar-header h2 { font-size: 14px; font-weight: 600; color: #2d2d2d; }
+
+  .memo-count {
+    font-size: 12px;
+    color: #4CAF50;
+    background: #E8F5E9;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+  }
+
+  .memo-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px;
+  }
+
+  .memo-card {
+    background: #fff;
+    border: 1px solid #e0e0d8;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+
+  .memo-card:hover { border-color: #8BC34A; }
+
+  .memo-card .memo-section {
+    font-size: 11px;
+    color: #999;
+    margin-bottom: 4px;
+  }
+
+  .memo-card .memo-context {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 6px;
+    padding: 4px 8px;
+    background: #f5f5f0;
+    border-radius: 4px;
+    border-left: 3px solid #8BC34A;
+  }
+
+  .memo-card .memo-question {
+    font-size: 13px;
+    color: #2d2d2d;
+    line-height: 1.5;
+  }
+
+  .memo-card .memo-delete {
+    float: right;
+    font-size: 11px;
+    color: #bbb;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+
+  .memo-card .memo-delete:hover { color: #ef4444; background: #fef2f2; }
+
+  /* Export panel */
+  .export-panel {
+    position: fixed;
+    top: 0; right: 0; bottom: 0;
+    width: 500px;
+    background: #FAFAF5;
+    border-left: 1px solid #e0e0d8;
+    z-index: 200;
+    display: none;
+    flex-direction: column;
+  }
+
+  .export-panel.open { display: flex; }
+
+  .export-header {
+    padding: 16px;
+    border-bottom: 1px solid #e0e0d8;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .export-content {
+    flex: 1;
+    padding: 16px;
+    overflow-y: auto;
+  }
+
+  .export-content textarea {
+    width: 100%;
+    height: 100%;
+    background: #fff;
+    border: 1px solid #d0d0c8;
+    border-radius: 8px;
+    color: #2d2d2d;
+    padding: 16px;
+    font-family: monospace;
+    font-size: 13px;
+    resize: none;
+    outline: none;
+  }
+
+  .export-actions {
+    padding: 12px 16px;
+    border-top: 1px solid #e0e0d8;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #4CAF50;
+    color: #fff;
+    padding: 8px 20px;
+    border-radius: 6px;
+    font-size: 13px;
+    z-index: 300;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+  }
+
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>keropin</h1>
+  <div class="header-actions">
+    <button id="btn-back" style="display:none">Back</button>
+    <button id="btn-export" class="primary" style="display:none">Export</button>
+    <button id="btn-done" class="success" style="display:none">Done - Send to Claude</button>
+  </div>
+</header>
+
+<div class="main-container">
+  <div class="input-view" id="input-view">
+    <textarea id="markdown-input" placeholder="Claude's response (markdown)"></textarea>
+    <div class="actions">
+      <button class="primary" id="btn-render">Render</button>
+    </div>
+  </div>
+
+  <div class="reader-view" id="reader-view">
+    <div class="content-area" id="content-area"></div>
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <h2>Memos</h2>
+        <span class="memo-count" id="memo-count">0</span>
+      </div>
+      <div class="memo-list" id="memo-list"></div>
+    </div>
+  </div>
+</div>
+
+<div class="memo-popup" id="memo-popup">
+  <div class="selected-text-preview" id="popup-preview"></div>
+  <textarea id="memo-input" placeholder="Write your question or memo here..."></textarea>
+  <div class="popup-actions">
+    <button id="popup-cancel">Cancel</button>
+    <button class="primary" id="popup-save">Save</button>
+  </div>
+</div>
+
+<div class="export-panel" id="export-panel">
+  <div class="export-header">
+    <h2>Export</h2>
+    <button id="btn-close-export">Close</button>
+  </div>
+  <div class="export-content">
+    <textarea id="export-output" readonly></textarea>
+  </div>
+  <div class="export-actions">
+    <button class="primary" id="btn-copy">Copy</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const memos = [];
+let currentSelection = null;
+let memoIdCounter = 0;
+
+const inputView = document.getElementById('input-view');
+const readerView = document.getElementById('reader-view');
+const contentArea = document.getElementById('content-area');
+const markdownInput = document.getElementById('markdown-input');
+const memoPopup = document.getElementById('memo-popup');
+const memoInput = document.getElementById('memo-input');
+const popupPreview = document.getElementById('popup-preview');
+const memoList = document.getElementById('memo-list');
+const memoCount = document.getElementById('memo-count');
+const exportPanel = document.getElementById('export-panel');
+const exportOutput = document.getElementById('export-output');
+const btnBack = document.getElementById('btn-back');
+const btnExport = document.getElementById('btn-export');
+const btnDone = document.getElementById('btn-done');
+
+// Try auto-load from server (skill mode)
+async function tryAutoLoad() {
+  try {
+    const res = await fetch('/api/response');
+    if (res.ok) {
+      const data = await res.json();
+      if (data.content) {
+        markdownInput.value = data.content;
+        renderContent();
+        return;
+      }
+    }
+  } catch (e) {}
+}
+
+tryAutoLoad();
+
+function renderContent() {
+  const md = markdownInput.value.trim();
+  if (!md) return;
+  contentArea.innerHTML = marked.parse(md);
+  inputView.style.display = 'none';
+  readerView.style.display = 'flex';
+  btnBack.style.display = '';
+  btnExport.style.display = '';
+  btnDone.style.display = '';
+}
+
+document.getElementById('btn-render').addEventListener('click', renderContent);
+
+btnBack.addEventListener('click', () => {
+  inputView.style.display = '';
+  readerView.style.display = 'none';
+  btnBack.style.display = 'none';
+  btnExport.style.display = 'none';
+  btnDone.style.display = 'none';
+});
+
+// Find nearest heading and paragraph for context
+function getSelectionContext(node) {
+  let section = '';
+  let paragraph = '';
+
+  // Walk up to find containing block element
+  let block = node.nodeType === 3 ? node.parentElement : node;
+  while (block && block !== contentArea) {
+    const tag = block.tagName;
+    if (['P', 'LI', 'TD', 'BLOCKQUOTE', 'PRE'].includes(tag)) {
+      paragraph = block.textContent.trim();
+      break;
+    }
+    block = block.parentElement;
+  }
+
+  // Walk previous siblings / parent to find nearest heading
+  let el = block || node;
+  while (el && el !== contentArea) {
+    let prev = el.previousElementSibling;
+    while (prev) {
+      if (/^H[1-6]$/.test(prev.tagName)) {
+        section = prev.textContent.trim();
+        return { section, paragraph };
+      }
+      prev = prev.previousElementSibling;
+    }
+    el = el.parentElement;
+  }
+
+  return { section, paragraph };
+}
+
+// Text selection -> memo popup
+contentArea.addEventListener('mouseup', (e) => {
+  const sel = window.getSelection();
+  const text = sel.toString().trim();
+  if (!text || text.length < 2) return;
+  if (!contentArea.contains(sel.anchorNode)) return;
+
+  const ctx = getSelectionContext(sel.anchorNode);
+
+  currentSelection = {
+    text,
+    range: sel.getRangeAt(0).cloneRange(),
+    section: ctx.section,
+    paragraph: ctx.paragraph
+  };
+
+  const rect = sel.getRangeAt(0).getBoundingClientRect();
+  let top = rect.bottom + 8;
+  let left = rect.left;
+  if (left + 320 > window.innerWidth) left = window.innerWidth - 330;
+  if (top + 200 > window.innerHeight) top = rect.top - 208;
+
+  memoPopup.style.top = top + 'px';
+  memoPopup.style.left = left + 'px';
+  memoPopup.style.display = 'block';
+  popupPreview.textContent = text.length > 100 ? text.slice(0, 100) + '...' : text;
+  memoInput.value = '';
+  setTimeout(() => memoInput.focus(), 50);
+});
+
+document.addEventListener('mousedown', (e) => {
+  if (!memoPopup.contains(e.target) && memoPopup.style.display === 'block') {
+    setTimeout(() => {
+      if (!memoPopup.contains(document.activeElement)) {
+        memoPopup.style.display = 'none';
+      }
+    }, 100);
+  }
+});
+
+document.getElementById('popup-cancel').addEventListener('click', () => {
+  memoPopup.style.display = 'none';
+});
+
+function saveMemo() {
+  const question = memoInput.value.trim();
+  if (!question || !currentSelection) return;
+
+  const id = memoIdCounter++;
+  const memo = {
+    id,
+    selectedText: currentSelection.text,
+    question,
+    section: currentSelection.section,
+    paragraph: currentSelection.paragraph
+  };
+
+  try {
+    const range = currentSelection.range;
+    const wrapper = document.createElement('span');
+    wrapper.className = 'memo-highlight';
+    wrapper.dataset.memoId = id;
+
+    const indicator = document.createElement('span');
+    indicator.className = 'memo-indicator';
+
+    range.surroundContents(wrapper);
+    wrapper.appendChild(indicator);
+
+    wrapper.addEventListener('click', () => {
+      const card = document.querySelector(`.memo-card[data-id="${id}"]`);
+      if (card) {
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        card.style.borderColor = '#4CAF50';
+        setTimeout(() => card.style.borderColor = '', 1500);
+      }
+    });
+  } catch (e) {}
+
+  memos.push(memo);
+  memoPopup.style.display = 'none';
+  window.getSelection().removeAllRanges();
+  renderMemoList();
+  showToast('Memo saved');
+}
+
+document.getElementById('popup-save').addEventListener('click', saveMemo);
+memoInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) saveMemo();
+});
+
+function renderMemoList() {
+  memoCount.textContent = memos.length;
+  memoList.innerHTML = '';
+  memos.forEach((memo, idx) => {
+    const card = document.createElement('div');
+    card.className = 'memo-card';
+    card.dataset.id = memo.id;
+
+    const sectionHtml = memo.section
+      ? `<div class="memo-section">${memo.section}</div>`
+      : '';
+
+    const contextText = memo.selectedText.length > 80
+      ? memo.selectedText.slice(0, 80) + '...'
+      : memo.selectedText;
+
+    card.innerHTML = `
+      <span class="memo-delete" data-idx="${idx}">&times;</span>
+      ${sectionHtml}
+      <div class="memo-context">"${contextText}"</div>
+      <div class="memo-question">${memo.question}</div>
+    `;
+
+    card.addEventListener('click', (e) => {
+      if (e.target.classList.contains('memo-delete')) return;
+      const hl = document.querySelector(`.memo-highlight[data-memo-id="${memo.id}"]`);
+      if (hl) {
+        hl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        hl.style.background = 'rgba(200, 230, 120, 0.5)';
+        setTimeout(() => hl.style.background = '', 1500);
+      }
+    });
+
+    card.querySelector('.memo-delete').addEventListener('click', (e) => {
+      e.stopPropagation();
+      const i = parseInt(e.target.dataset.idx);
+      const removed = memos.splice(i, 1)[0];
+      const hl = document.querySelector(`.memo-highlight[data-memo-id="${removed.id}"]`);
+      if (hl) {
+        const indicator = hl.querySelector('.memo-indicator');
+        if (indicator) indicator.remove();
+        hl.replaceWith(...hl.childNodes);
+      }
+      renderMemoList();
+    });
+
+    memoList.appendChild(card);
+  });
+}
+
+function buildExport() {
+  if (memos.length === 0) return null;
+
+  let output = `Previous response had ${memos.length} inline questions:\n\n`;
+  memos.forEach((memo, i) => {
+    output += `---\n`;
+    if (memo.section) {
+      output += `Section: "${memo.section}"\n`;
+    }
+    if (memo.paragraph && memo.paragraph !== memo.selectedText) {
+      const para = memo.paragraph.length > 200
+        ? memo.paragraph.slice(0, 200) + '...'
+        : memo.paragraph;
+      output += `Paragraph: "${para}"\n`;
+    }
+    output += `Selected: "${memo.selectedText}"\n`;
+    output += `Q: ${memo.question}\n\n`;
+  });
+
+  return output;
+}
+
+// Export (copy mode)
+btnExport.addEventListener('click', () => {
+  const output = buildExport();
+  if (!output) { showToast('No memos yet'); return; }
+  exportOutput.value = output;
+  exportPanel.classList.add('open');
+});
+
+document.getElementById('btn-close-export').addEventListener('click', () => {
+  exportPanel.classList.remove('open');
+});
+
+document.getElementById('btn-copy').addEventListener('click', () => {
+  exportOutput.select();
+  navigator.clipboard.writeText(exportOutput.value);
+  showToast('Copied!');
+});
+
+// Done - save to file (skill mode)
+btnDone.addEventListener('click', async () => {
+  const output = buildExport();
+  if (!output) { showToast('No memos yet'); return; }
+
+  try {
+    const res = await fetch('/api/export', {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: output
+    });
+    if (res.ok) {
+      showToast('Sent! You can close this tab.');
+      btnDone.textContent = 'Sent!';
+      btnDone.disabled = true;
+    } else {
+      // Fallback to clipboard
+      await navigator.clipboard.writeText(output);
+      showToast('Server unavailable - copied to clipboard instead');
+    }
+  } catch (e) {
+    await navigator.clipboard.writeText(output);
+    showToast('Server unavailable - copied to clipboard instead');
+  }
+});
+
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2000);
+}
+</script>
+</body>
+</html>
