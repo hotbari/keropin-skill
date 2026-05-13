@@ -30,8 +30,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
     def do_POST(self):
         if self.path == "/api/export":
             length = int(self.headers.get("Content-Length", 0))
-            body = self.rfile.read(length).decode()
-            with open(EXPORT_FILE, "w") as f:
+            body = self.rfile.read(length).decode("utf-8")
+            with open(EXPORT_FILE, "w", encoding="utf-8") as f:
                 f.write(body)
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
@@ -43,7 +43,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
     def _serve_json_file(self, path):
         if os.path.exists(path):
-            with open(path, "r") as f:
+            with open(path, "r", encoding="utf-8") as f:
                 content = f.read()
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
