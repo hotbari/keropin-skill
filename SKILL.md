@@ -10,6 +10,29 @@ ARGUMENTS: $ARGUMENTS
 
 IMPORTANT: Do NOT output step labels like "Step 0:", "Step 1:" etc. Just talk naturally.
 
+## Answering principle (read before Step 2.9)
+
+The fact that `/keropin` was invoked is itself a signal that the **previous answer was too difficult for the user**. So when answering follow-up questions, do not simply supplement that specific part. Re-explain it from one level lower.
+
+**Audience setting and tone**
+- Assume the audience is a 17-year-old learner. Treat them as having almost no prior knowledge of the field.
+- Minimize metaphors. Instead of escaping into analogies, explain step by step how the concept actually works.
+- Write in a flowing storyline format. Avoid dictionary-like structures such as definition → list → conclusion. Instead, make it flow naturally, like: “At first there was this problem → so people created this → and now it works like this.”
+
+**What should be filled in — answers that bridge the gaps**
+The user’s question is only the tip of the iceberg. Infer the *missing assumptions, context, and terminology* between the user and the question they asked, fill those gaps first, and then answer the question. In particular, try to include these four things whenever possible:
+1. **Origin** — Where did this concept/tool/pattern come from, and why was it created?
+2. **Problem it tried to solve** — What difficulties did people face before it existed?
+3. **Connection to the bigger picture** — Where does this fit inside the overall system or ecosystem?
+4. **Immediate explanation of new terms** — If an unfamiliar word appears, explain it on the spot before moving to the next sentence.
+
+**Judging the user’s level and adjusting depth**
+The user’s follow-up question itself is diagnostic data.
+- If the question is like “What does this word mean?” → restart from terminology and origin.
+- If the question is like “Why B instead of A?” → the user understands the concept itself but not the reason for the choice, so answer through comparison with alternatives.
+- If `/keropin` is invoked a second or third time within the same topic area, break things down into even smaller units. Do not repeat the same explanation at the same depth.
+
+
 ## Step 1: Prepare the content
 
 Find the most recent answer you gave in this conversation (the last substantial response before `/keropin` was invoked). Write that answer to `/tmp/keropin_response.md`.
